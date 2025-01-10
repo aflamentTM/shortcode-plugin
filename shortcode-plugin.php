@@ -23,7 +23,7 @@ function sp_handle_student_data($attributes) {
     return "<h3>Student Data: Name - {$attributes['name']}, Email - {$attributes['email']}</h3>";
 }
 // shortcode with DB operations
-add_shortcode("list-posts", "sp_handle_list_posts");
+add_shortcode("list-posts", "sp_handle_list_posts_wp_query_class");
 
 function sp_handle_list_posts() {
     global $wpdb;
@@ -33,14 +33,37 @@ function sp_handle_list_posts() {
 
    $posts =  $wpdb->get_results(
         "SELECT post_title from {$table_name} WHERE post_type = 'post' AND post_status = 'publish' ");
+        // error_log(print_r($posts, true));
         if (count($posts) > 0) {
             $outputHtml = "<ul>";
             foreach($posts as $post) {
-                $outputHtml .= '<li>'. $post->post_title .'<li>';
+                // error_log($post->post_title);
+                $outputHtml .= '<li>'. $post->post_title .'</li>';
             }
-            $outputHtml = "</ul>";
+            $outputHtml .= "</ul>";
 
             return $outputHtml;
         };
         return  "pas de posts";
+}
+function sp_handle_list_posts_wp_query_class($attributes) {
+    $attributes = shortcode_atts(array( 
+        "number" => 5
+    ), $attributes, "list-posts");
+
+    $query = new WP_Query(array( 
+        "posts_per_page" => $attributes['number'],
+        "post_status" => "publish"
+    ));
+
+    if($query->have_posts()) {
+        $outputHtml = '<ul>';
+        while($query->have_posts()) {
+            $query->the_post();
+            $outputHtml .= '<li class="my_class"><a href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
+        }
+        $outputHtml .= '</li>';
+        return $outputHtml;
+    }
+    return "Pas d'article trouvé !";
 }
