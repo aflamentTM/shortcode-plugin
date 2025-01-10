@@ -1,0 +1,46 @@
+<?php 
+
+/**
+ * Plugin Name: ShortCode Plugin
+ * Description: This is our second plugin which gives idea about shortcode basics
+ * Author: Arnaud Flament
+ * Version: 1.0
+ * Author URI: 
+ * Plugin URI: https://github.com/aflamentTM/plugin_exercice
+ */
+//  Basique shortcode
+add_shortcode("message","sp_show_static_message");
+function sp_show_static_message() {
+    return "<p style='color:red;font-size:36px;font-weight:bold'>Hello I am a shortcode message</p>";
+}
+// Shortcode with params
+add_shortcode("student", "sp_handle_student_data");
+function sp_handle_student_data($attributes) {
+    $attributes =  shortcode_atts(array( 
+        "name" => "Default Student",
+        "email" => "Default Email"
+    ), $attributes, "student");
+    return "<h3>Student Data: Name - {$attributes['name']}, Email - {$attributes['email']}</h3>";
+}
+// shortcode with DB operations
+add_shortcode("list-posts", "sp_handle_list_posts");
+
+function sp_handle_list_posts() {
+    global $wpdb;
+    $table_prefix = $wpdb->prefix; // wp_
+    $table_name =$table_prefix . "posts"; // wp_posts
+    // Get post whose post_type =  post and post_status = publish
+
+   $posts =  $wpdb->get_results(
+        "SELECT post_title from {$table_name} WHERE post_type = 'post' AND post_status = 'publish' ");
+        if (count($posts) > 0) {
+            $outputHtml = "<ul>";
+            foreach($posts as $post) {
+                $outputHtml .= '<li>'. $post->post_title .'<li>';
+            }
+            $outputHtml = "</ul>";
+
+            return $outputHtml;
+        };
+        return  "pas de posts";
+}
